@@ -2,16 +2,15 @@ package com.dyalex.urlshortener.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
+@Entity
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 @Builder
 @Table(name = "urls")
 public class Url {
@@ -20,7 +19,9 @@ public class Url {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_uuid")
+    private User user;
 
     private String fullUrl;
 
@@ -33,5 +34,10 @@ public class Url {
 
     private Long maxFollows;
 
-    private Long followCounter;
+    @Builder.Default
+    private Long followCounter = 0L;
+
+    @Transient
+    @Builder.Default
+    private Boolean active = true;
 }
