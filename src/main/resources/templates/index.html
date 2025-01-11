@@ -6,98 +6,98 @@
     <title>URL Shortener</title>
 </head>
 <body>
-<header class="flexible spaced">
+<header>
     <h1>Welcome to URL Shortener!</h1>
+</header>
+<div>
+    <h3>Create short link</h3>
+    <form th:action="@{/api/urls/shorten}" method="post" th:object="${url}">
+        <div>
+            <label for="fullUrl">Enter a long URL below <strong>*</strong></label>
+            <br/>
+            <input type="text" id="fullUrl" name="fullUrl"
+                   placeholder="Long URL" th:field="*{fullUrl}" required>
+            <span class="validationError"
+                  th:if="${#fields.hasErrors('fullUrl')}"
+                  th:errors="*{fullUrl}">URL Error</span>
+        </div>
+        <div>
+            <label for="ttl">Enter TTL</label>
+            <br/>
+            <input type="text" id="ttl" name="ttl"
+                   placeholder="PT12H" th:field="*{ttl}">
+        </div>
+        <div>
+            <lable for="maxFollows">Enter maximum number of link follows</lable>
+            <br/>
+            <input type="number" id="maxFollows" name="maxFollows" min="1">
+        </div>
+        <div>
+            <input th:type="submit" value="Submit">
+        </div>
+    </form>
+</div>
 
-    <div>
-        <h3>Create short link</h3>
-        <form th:action="@{/api/urls/shorten}" method="post" th:object="${url}">
-            <div>
-                <label for="fullUrl">Enter a long URL below <strong>*</strong></label>
-                <br/>
-                <input type="text" id="fullUrl" name="fullUrl"
-                       placeholder="Long URL" th:field="*{fullUrl}" required>
-                <span class="validationError"
-                      th:if="${#fields.hasErrors('fullUrl')}"
-                      th:errors="*{fullUrl}">URL Error</span>
-            </div>
-            <div>
-                <label for="ttl">Enter TTL</label>
-                <br/>
-                <input type="text" id="ttl" name="ttl"
-                       placeholder="PT12H" th:field="*{ttl}">
-            </div>
-            <div>
-                <lable for="maxFollows">Enter maximum number of link follows</lable>
-                <br/>
-                <input type="number" id="maxFollows" name="maxFollows" min="1">
-            </div>
-            <div>
-                <input th:type="submit" value="Submit">
-            </div>
+<br/>
+<section>
+    <div th:if="${user} != null">
+        <form th:action="@{/logout}" method="post">
+            <input type="submit" class="button button_danger" value="Log out"/>
         </form>
     </div>
 
-    <br/>
-    <section>
-        <div th:if="${user} != null">
-            <form th:action="@{/logout}" method="post">
-                <input type="submit" class="button button_danger" value="Log out"/>
-            </form>
-        </div>
+    <div th:if="${user} == null">
+        <form th:action="@{/setCookies}" method="post">
+            <label for="uuid">Enter your UUID</label>
+            <input type="text" id="uuid" name="uuid"
+                   placeholder="UUID">
+            <input type="submit" class="button button_danger" value="Login"/>
+        </form>
+    </div>
+</section>
+<br/>
+<section>
+    <h2>URLS</h2>
+    <table id="urls">
+        <thead>
+        <tr>
+            <th>Short URL</th>
+            <th>Created Date</th>
+            <th>TTL</th>
+            <th>Max follows</th>
+            <th>Follow counter</th>
+            <th>Delete</th>
+            <th>URL</th>
+        </tr>
+        </thead>
+        <tr th:border="1" style="width: 50%"
+            th:each="u: ${urls}">
+            <td><a th:href="@{/api/urls/{short}(short=${u.shortUrl})}" th:text="${u.shortUrl}"/></td>
+            <td th:text="${u.createdAt}">created date</td>
+            <td th:text="${u.ttl}"></td>
+            <td>
+                <span th:text="${u.maxFollows}"></span>
+                <form th:action="@{/api/urls/{short}(short=${u.shortUrl})}" th:method="put">
+                    <input type="number" th:id="edit_ + ${u.shortUrl}" name="maxFollows" th:value="${u.maxFollows}"
+                           hidden/>
+                    <input type="submit" th:id="submit_ + ${u.shortUrl}" class="button button_danger"
+                           value="Confirm" hidden/>
+                </form>
+                <button th:id="btn_ + ${u.shortUrl}" th:onclick="el([[${u.shortUrl}]])">Edit max follows</button>
+            </td>
+            <td th:text="${u.followCounter}"></td>
+            <td>
+                <form th:action="@{/api/urls/{short}(short=${u.shortUrl})}" th:method="delete"
+                      th:onsubmit="return confirm('Are you sure you want to delete link '+[[${u.shortUrl}]]);">
+                    <input type="hidden" name="shortUrl" th:value="${u.shortUrl}">
+                    <button>Delete</button>
+                </form>
+            </td>
+            <td th:text="${u.fullUrl}">url</td>
+        </tr>
+    </table>
+</section>
 
-        <div th:if="${user} == null">
-            <form th:action="@{/setCookies}" method="post">
-                <label for="uuid">Enter your UUID</label>
-                <input type="text" id="uuid" name="uuid"
-                       placeholder="UUID">
-                <input type="submit" class="button button_danger" value="Login"/>
-            </form>
-        </div>
-    </section>
-    <br/>
-    <section>
-        <h2>URLS</h2>
-        <table id="urls">
-            <thead>
-            <tr>
-                <th>Short URL</th>
-                <th>Created Date</th>
-                <th>TTL</th>
-                <th>Max follows</th>
-                <th>Follow counter</th>
-                <th>Delete</th>
-                <th>URL</th>
-            </tr>
-            </thead>
-            <tr th:border="1" style="width: 50%"
-                th:each="u: ${urls}">
-                <td><a th:href="@{/api/urls/{short}(short=${u.shortUrl})}" th:text="${u.shortUrl}"/></td>
-                <td th:text="${u.createdAt}">created date</td>
-                <td th:text="${u.ttl}"></td>
-                <td>
-                    <span th:text="${u.maxFollows}"></span>
-                    <form th:action="@{/api/urls/{short}(short=${u.shortUrl})}" th:method="put">
-                        <input type="number" th:id="edit_ + ${u.shortUrl}" name="maxFollows" th:value="${u.maxFollows}"
-                               hidden/>
-                        <input type="submit" th:id="submit_ + ${u.shortUrl}" class="button button_danger"
-                               value="Confirm" hidden/>
-                    </form>
-                    <button th:id="btn_ + ${u.shortUrl}" th:onclick="el([[${u.shortUrl}]])">Edit max follows</button>
-                </td>
-                <td th:text="${u.followCounter}"></td>
-                <td>
-                    <form th:action="@{/api/urls/{short}(short=${u.shortUrl})}" th:method="delete"
-                          th:onsubmit="return confirm('Are you sure you want to delete link '+[[${u.shortUrl}]]);">
-                        <input type="hidden" name="shortUrl" th:value="${u.shortUrl}">
-                        <button>Delete</button>
-                    </form>
-                </td>
-                <td th:text="${u.fullUrl}">url</td>
-            </tr>
-        </table>
-    </section>
-</header>
 
 <script>
     function el(shortLink) {
